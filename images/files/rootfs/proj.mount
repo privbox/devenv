@@ -1,0 +1,12 @@
+[Unit]
+Description=project-mount
+After=network-online.target
+
+[Mount]
+Type=9p
+What=share
+Where=/proj
+Options=ro
+
+[Install]
+WantedBy=network-online.target

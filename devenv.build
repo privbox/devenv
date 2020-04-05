@@ -1,0 +1,14 @@
+#!/usr/bin/sh -eux
+
+mkdir -p .containers .workdir
+
+docker build -t localhost/privbox-devenv -f Dockerfile.devenv .
+docker rm -f privbox-devenv || true
+docker create \
+    -v $PWD/.containers:/var/lib/containers/storage \
+    -v $PWD/.workdir:/workdir \
+    --privileged \
+    --security-opt label=disable \
+    --name privbox-devenv \
+    localhost/privbox-devenv
+docker start privbox-devenv

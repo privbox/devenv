@@ -1,0 +1,8 @@
+FROM docker.io/fedora:32
+RUN dnf install -y \
+        dracut \
+        dracut-network \
+        gzip \
+        xz && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf/*

@@ -1,0 +1,44 @@
+FROM docker.io/fedora:36
+
+RUN dnf update -y && \
+    dnf install -y \
+        --exclude=kernel-core \
+        fedora-release-server \
+        @"Fedora Server Edition"  \
+        vim \
+        less \
+        openssl \
+        strace \
+        tmux \
+        htop \
+        cgdb \
+        postgresql-server \
+        postgresql-contrib \
+        sudo \
+        libmemcached \
+        gdb-gdbserver \
+        httpd-tools \
+        --allowerasing && \
+    systemctl unmask systemd-logind.service dev-hugepages.mount sys-fs-fuse-connections.mount systemd-remount-fs.service getty.target && \
+    dnf clean all && \
+    rm -rf /var/cache/dnf/* && \
+    rm -rf /boot/efi/*
+# ADD files/en_4.network /etc/systemd/network
+RUN systemctl disable NetworkManager-wait-online.service NetworkManager.service ModemManager.service && \
+    systemctl mask systemd-networkd-wait-online.service && \
+    systemctl enable systemd-networkd.service && \
+    usermod --password $(openssl passwd -1 "123") root && \
+    echo "PermitRootLogin yes" >> /etc/ssh/sshd_config && \
+    echo "MaxAuthTries 10" >> /etc/ssh/sshd_config && \
+    rm /usr/lib/systemd/zram-generator.conf && \
+    sudo -u postgres initdb -D /var/lib/pgsql/data
+ARG FILES
+ADD ${FILES}/autologin.conf /etc/systemd/system/serial-getty@ttyS1.service.d/
+ADD ${FILES}/autologin.conf /etc/systemd/system/serial-getty@ttyS0.service.d/
+ADD ${FILES}/enp0s2.network /etc/systemd/network/
+ADD ${FILES}/proj.mount /etc/systemd/system
+RUN mkdir /proj && systemctl enable proj.mount
+RUN mkdir /root/.ssh && \
+	chmod 0700 /root/.ssh && \
+	echo ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDJYyE/sz8giNkS9ypQgqiC7HTyPjT/iz5n4gtJU0geXlORNL0HlyB1H+0eQOIAMeXh6GmE0xAV4OA4EAF+6KGXj9bScYiNHsVvOc2pNt09rCaETnFwQ9g/dBRGoijzDM1k7uFi7HAXe5fJ3KM+pzeIX/KbJ2xPrPcJ+lePi/e98FPKebHzMiPywuCKbgi9oDBxsEQ9juiRSGhmUHqstMAdMnCCsiFqFxD49z9Nka0P3I8D9NBtdUJXRt/cAz/D/039KzsByAobJ0jSvEhEbOZDxwBF72Kruwok7uhkX9nsr3OEr7ymf3/f95fakB8vXQTyuuTxMD3jUgMSj769tXap kuznetsov2@rack-mad-15r > /root/.ssh/authorized_keys && \
+	chmod 0600 /root/.ssh/authorized_keys

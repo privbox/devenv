@@ -1,0 +1,12 @@
+#!/bin/bash
+DEVENV_ROOT=$(realpath $(dirname ${BASH_SOURCE[0]})/../)
+
+QEMU=qemu-system-x86_64
+
+LINUX_SRC=$(realpath ${DEVENV_ROOT}/../kernel)
+BASE_IMAGE=${DEVENV_ROOT}/images/build/base.img
+# KERNEL=${DEVENV_ROOT}/../kernel/arch/x86/boot/bzImage
+KERNEL=${PWD}/bzImage
+
+TAP=piot-tap
+BR=piot-br

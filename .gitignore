@@ -1,0 +1,12 @@
+*.img
+*.gen
+tools/build
+scripts/*.qcow2
+images/build/*
+images/tools/*
+images/initrd/build/*
+.*_dep
+bzImage
+bin/
+.workdir
+.containers
