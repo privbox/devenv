@@ -18,6 +18,7 @@ RUN dnf install -y \
     hostname \
     libtool && \
     dnf builddep -y clang
+RUN dnf install -y moby-engine
 RUN mkdir -p /workdir
 WORKDIR /workdir
 ENV WORKDIR=/workdir

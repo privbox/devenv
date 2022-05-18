@@ -14,9 +14,10 @@ IMAGE_DEP_PREFIX = $(BUILD)/podman-images/
 image_name = $(IMAGE_PREFIX)$(1)
 
 cont_cmd = \
-	podman run --rm \
+	docker run --rm \
 	    $(2) \
 	    --volume $(PROJ_ROOT):$(PROJ_ROOT):rw,z \
+	    --volume privbox-build:/build:rw,z \
 	    $(1)
 
 ROOTFS_IMAGE     = $(call image_name,rootfs)
@@ -59,7 +60,7 @@ dracut: $(DRACUT_IMAGE_DEP)
 initrd: $(INITRD)
 
 $(IMAGE_DEP_PREFIX)$(IMAGE_PREFIX)%: $(CURDIR)/Dockerfile.%
-	podman build -f $< -t $(IMAGE_PREFIX)$* --build-arg FILES=files/$* .
+	docker build -f $< -t $(IMAGE_PREFIX)$* --build-arg FILES=files/$* .
 	mkdir -p $(dir $@) && touch $@
 
 $(ROOTFS_IMAGE_DEP): $(shell find $(CURDIR)/files/rootfs -type f)
@@ -73,9 +74,10 @@ $(INITRD): $(DRACUT_IMAGE_DEP)
 				--force \
 				--no-hostonly \
 				--verbose \
-				$@ &> ${BUILD}/dracut.log && \
-			chmod a+r $@ \
+				/build/initrd.img &> /build/dracut.log && \
+			chmod a+r /build/initrd.img \
 		"
+	cp /build/initrd.img $@
 
 kernel:
 	cd $(KERNEL_DIR); \
@@ -104,10 +106,10 @@ $(TOOLS_DEP): deps tools
 	stat --format %y $(shell find $(TOOLS_DIST) -type f | xargs ls -tr1 | tail -1) | xargs -i touch -d {} $@
 
 $(BASE_TAR): $(ROOTFS_IMAGE_DEP)
-	podman rm -f $(CONT_NAME) || true
-	podman create --name $(CONT_NAME) $(BASE_IMAGE_TAG)
-	podman export $(CONT_NAME) > $@
-	podman rm -f $(CONT_NAME)
+	docker rm -f $(CONT_NAME) || true
+	docker create --name $(CONT_NAME) $(BASE_IMAGE_TAG)
+	docker export $(CONT_NAME) > $@
+	docker rm -f $(CONT_NAME)
 
 $(BASE_IMG): $(BASE_TAR) # $(TOOLS_DEP)
 	qemu-img create -f qcow2 $@.tmp 10g

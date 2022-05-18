@@ -9,6 +9,8 @@ docker create \
     -v $PWD/.workdir:/workdir \
     --privileged \
     --security-opt label=disable \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    -v privbox-build:/build \
     --name privbox-devenv \
     localhost/privbox-devenv
 docker start privbox-devenv
