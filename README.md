@@ -46,24 +46,26 @@ Note: in provided Docker image, `WORKDIR` is set up automatically and points to 
 1. Install a Fedora 36 host
 2. Install dependencies:
    ```
-   sudo dnf install -y \
-    'dnf-command(builddep)' \
-    git \
-    ninja-build podman \
-    libguestfs-tools \
-    qemu-img \
-    flex \
-    bison \
-    elfutils-libelf-devel \
-    openssl-devel \
-    glibc-static \
-    automake \
-    libtool \
-    rsync \
-    bc \
-    hostname \
-    sudo
-    
+    sudo dnf install -y \
+        'dnf-command(builddep)' \
+        git \
+        ninja-build \
+        podman \
+        libguestfs-tools \
+        qemu-img \
+        flex \
+        bison \
+        elfutils-libelf-devel \
+        openssl-devel \
+        glibc-static \
+        automake \
+        rsync \
+        bc \
+        hostname \
+        libevent-devel \
+        pcre-devel \
+        libtool \
+        sudo
 
    sudo dnf builddep -y clang
    ```
@@ -186,7 +188,7 @@ Network connectivity is based on bridge/tap interfaces and require sudo/root acc
 cd ${WORKDIR?}/devenv/scripts
 
 # Network interfaces setup (needed only once per boot, creates network interfaces piot-br/piot-tap)
-sudo ./network.setup
+sudo ./network.sh setup
 
 # undo with sudo ./network.sh teardown
 
