@@ -2,9 +2,9 @@ FROM fedora:36
 
 RUN dnf install -y \
     'dnf-command(builddep)' \
-    podman \
     git \
-    ninja-build podman \
+    ninja-build \
+    podman \
     libguestfs-tools \
     qemu-img \
     flex \
@@ -16,7 +16,10 @@ RUN dnf install -y \
     rsync \
     bc \
     hostname \
-    libtool && \
+    libevent-devel \
+    pcre-devel \
+    libtool \
+    sudo && \
     dnf builddep -y clang
 RUN mkdir -p /workdir
 WORKDIR /workdir
