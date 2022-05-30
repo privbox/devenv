@@ -150,6 +150,8 @@ The following commands build all the binaries needed to produce the results of t
 cd ${WORKDIR?}/redis
 ./build-all.sh
 
+cd ${WORKDIR?}/redis-vanilla/deps
+make jemalloc
 cd ${WORKDIR?}/redis-vanilla
 make -j$(nproc)
 cp src/redis-benchmark ${WORKDIR?}/devenv/bin/
