@@ -508,37 +508,64 @@ cd ${WORKDIR?}/devenv/scripts
 Then, run the measurements inside the VM:
 
 ```
+
+ITER=10
 rm -rf /tmp/sqlite
 mkdir -p /tmp/sqlite
-for TEST in fillseq fillseqsync fillseqbatch fillrandom fillrandsync \
-    fillrandbatch overwrite overwritebatch readrandom readseq \
-    fillrand100K fillseq100K readrand100K;
+for TEST in \
+    fillseq fillseqsync fillseqbatch fillrandom \
+    fillrandbatch overwritebatch readrandom readseq \
+    readrand100K;
 do
-    for I in $(seq 0 10); do
+    for I in $(seq 0 ${ITER}); do
         for KERNCALL in 0 1;
         do
             for INSTR in fullinstr instr noinstr;
             do
                 echo $TEST: $(( $I + 1 ))/11, KERNCALL=$KERNCALL INSTR=$INSTR
-                /proj/bin/sqlite-bench-$INSTR/sqlite-bench \
-                    --num=1 --kerncall=$KERNCALL --benchmarks=$TEST 2>&1 | grep micro | \
+                (
+                    cd /tmp;
+                    /proj/bin/sqlite-bench-$INSTR/sqlite-bench \
+                    --kerncall=$KERNCALL --benchmarks=$TEST 2>&1 | grep micro | \
                      tee /tmp/sqlite/res.$INSTR.$KERNCALL.$TEST.$I
+                )
             done
         done
     done
 done
 
+pretty_name () {
+    KERNCALL=$1
+    INSTR=$2
+    if [[ "${INSTR}" == "instr" ]]; then
+        INSTR=brinstr
+    fi
+    if [[ "${KERNCALL}" == "1" ]]; then
+        KERNCALL="priv"
+    else
+        KERNCALL="nopriv"
+    fi
+    echo -n "${INSTR}-${KERNCALL}"
+}
+
 # Report
-for TEST in fillseq fillseqsync fillseqbatch fillrandom fillrandsync \
-    fillrandbatch overwrite overwritebatch readrandom readseq \
-    fillrand100K fillseq100K readrand100K;
+for TEST in \
+    fillseq fillseqsync fillseqbatch fillrandom \
+    fillrandbatch overwritebatch readrandom readseq \
+    readrand100K;
 do
-    echo -n $TEST,;
-    for I in $(seq 1 10);
+    for KERNCALL in 0 1;
     do
-        grep -oE "\b$TEST\b.*$" /tmp/res.$I | head -1 | awk '{print $3}'
-    done | tr '\n' ,
-    echo
+        for INSTR in fullinstr instr noinstr;
+        do
+            echo -n "$TEST,$(pretty_name $KERNCALL $INSTR),"
+            for I in $(seq 0 ${ITER})
+            do
+                grep -oE "\b$TEST\b.*$" /tmp/sqlite/res.$INSTR.$KERNCALL.$TEST.$I | head -1 | awk '{print $3}'
+            done | tr '\n' ,
+            echo
+        done
+    done
 done
 ```
 
